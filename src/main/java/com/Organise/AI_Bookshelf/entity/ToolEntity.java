@@ -17,13 +17,14 @@ import lombok.Setter;
         indexes = {
                 @Index(
                         name = "idx_tool_category",
-                        columnList = "category"
+                        columnList = "category_id"
                 )
         }
 
 )
 
-@Data
+@Getter
+@Setter
 public class ToolEntity {
 
     @Id
@@ -32,7 +33,10 @@ public class ToolEntity {
 
     private String name;
     private String description;
-    private String category;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private CategoryEntity category;
 
     @Column(name = "website_url")
     private String websiteUrl;

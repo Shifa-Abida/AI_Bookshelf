@@ -2,9 +2,12 @@ package com.Organise.AI_Bookshelf.service;
 
 import com.Organise.AI_Bookshelf.dto.ToolRequestDto;
 import com.Organise.AI_Bookshelf.dto.ToolResponseDto;
+import com.Organise.AI_Bookshelf.entity.CategoryEntity;
 import com.Organise.AI_Bookshelf.entity.ToolEntity;
+import com.Organise.AI_Bookshelf.exception.ToolAlreadyExistsException;
 import com.Organise.AI_Bookshelf.exception.ToolNotFoundException;
 import com.Organise.AI_Bookshelf.repository.ToolRepository;
+import com.Organise.AI_Bookshelf.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -18,50 +21,104 @@ public class ToolService {
 
     private final ToolRepository toolRepository;
     private final ModelMapper modelMapper;
+    private final CategoryRepository categoryRepository;
+
+    private CategoryEntity getOrCreateCategory(String categoryName) {
+
+        return categoryRepository.findByName(categoryName)
+                .orElseGet(() -> {
+                    CategoryEntity newCategory = new CategoryEntity();
+                    newCategory.setName(categoryName);
+                    return categoryRepository.save(newCategory);
+                });
+    }
+
+    private ToolResponseDto mapToResponse(ToolEntity toolEntity) {
+
+        ToolResponseDto response = new ToolResponseDto();
+
+        response.setId(toolEntity.getId());
+        response.setName(toolEntity.getName());
+        response.setDescription(toolEntity.getDescription());
+        response.setCategory(toolEntity.getCategory().getName());
+        response.setWebsiteUrl(toolEntity.getWebsiteUrl());
+        response.setPricing(toolEntity.getPricing());
+
+        return response;
+    }
 
 
     // Save a new tool
     public ToolResponseDto saveTool(ToolEntity toolEntity) {
-        return modelMapper.map(toolRepository.save(toolEntity), ToolResponseDto.class);
+        return mapToResponse(toolRepository.save(toolEntity));
     }
 
     // Get all tools
     public List<ToolResponseDto> getAllTools() {
         return toolRepository.findAll().stream()
-                .map(toolEntity -> modelMapper.map(toolEntity, ToolResponseDto.class))
+                .map(this::mapToResponse)
                 .toList();
     }
 
     // Get a tool by ID
     public Optional<ToolResponseDto> getToolById(Long id) {
         ToolEntity toolEntity = toolRepository.findById(id).orElseThrow(() -> new ToolNotFoundException("Tool not found with id: " + id));
-        return Optional.of(modelMapper.map(toolEntity, ToolResponseDto.class));
+        return Optional.of(mapToResponse(toolEntity));
     }
 
    // Create a new tool
     public ToolResponseDto createTool(ToolRequestDto toolDto) {
-        ToolEntity toolEntity = modelMapper.map(toolDto, ToolEntity.class);
+
+        if (toolRepository.existsByName(toolDto.getName())) {
+            throw new ToolAlreadyExistsException(
+                    "Tool with this name already exists."
+            );
+        }
+
+        // Check duplicate website URL
+        if (toolRepository.existsByWebsiteUrl(toolDto.getWebsiteUrl())) {
+            throw new ToolAlreadyExistsException(
+                    "Tool with this website URL already exists."
+            );
+        }
+
+        ToolEntity toolEntity = new ToolEntity();
+
+        toolEntity.setName(toolDto.getName());
+        toolEntity.setDescription(toolDto.getDescription());
+        toolEntity.setWebsiteUrl(toolDto.getWebsiteUrl());
+        toolEntity.setPricing(toolDto.getPricing());
+
+        CategoryEntity categoryEntity = getOrCreateCategory(toolDto.getCategory());
+        toolEntity.setCategory(categoryEntity);
         ToolEntity savedToolEntity = toolRepository.save(toolEntity);
-        return modelMapper.map(savedToolEntity, ToolResponseDto.class);
+
+        return mapToResponse(savedToolEntity);
     }
 
     // Update an existing tool
     public ToolResponseDto updateTool(Long id, ToolRequestDto toolDto) {
 
         ToolEntity existingTool = toolRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tool not found with id: " + id));
+                .orElseThrow(() -> new ToolNotFoundException("Tool not found with id: " + id));
 
-        modelMapper.map(toolDto, existingTool);
+        existingTool.setName(toolDto.getName());
+        existingTool.setDescription(toolDto.getDescription());
+        existingTool.setWebsiteUrl(toolDto.getWebsiteUrl());
+        existingTool.setPricing(toolDto.getPricing());
+
+        CategoryEntity categoryEntity = getOrCreateCategory(toolDto.getCategory());
+        existingTool.setCategory(categoryEntity);
 
         ToolEntity updatedTool = toolRepository.save(existingTool);
 
-        return modelMapper.map(updatedTool, ToolResponseDto.class);
+        return mapToResponse(updatedTool);
     }
 
     // Delete a tool by ID
     public void deleteTool(Long id) {
         ToolEntity existingTool = toolRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tool not found with id: " + id));
+                .orElseThrow(() -> new ToolNotFoundException("Tool not found with id: " + id));
 
         toolRepository.delete(existingTool);
     }

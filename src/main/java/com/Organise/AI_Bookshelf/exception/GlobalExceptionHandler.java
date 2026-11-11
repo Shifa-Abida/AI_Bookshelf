@@ -29,6 +29,21 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
 
+
+    @ExceptionHandler(ToolAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponseDto> handleDuplicateTool(
+            ToolAlreadyExistsException ex) {
+
+        ErrorResponseDto error = new ErrorResponseDto();
+
+        error.setMessage(ex.getMessage());
+        error.setStatus(HttpStatus.CONFLICT.value());
+        error.setTimestamp(LocalDateTime.now());
+        error.setError("Conflict");
+
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(ToolNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<ErrorResponseDto> handleToolNotFound(ToolNotFoundException ex) {

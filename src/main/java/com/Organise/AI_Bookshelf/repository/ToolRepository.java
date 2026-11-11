@@ -6,4 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ToolRepository extends JpaRepository<ToolEntity, Long> {
 
+    boolean existsByName(String name);
+
+    boolean existsByWebsiteUrl(String websiteUrl);
+
 }

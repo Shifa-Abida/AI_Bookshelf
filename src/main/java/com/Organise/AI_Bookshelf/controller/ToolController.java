@@ -53,7 +53,8 @@ public class ToolController {
 
     //delete a tool by id
     @DeleteMapping("/api/tools/{id}")
-    public void deleteTool(@PathVariable Long id) {
+    public ResponseEntity<String> deleteTool(@PathVariable Long id) {
         toolService.deleteTool(id);
+        return ResponseEntity.ok("Tool deleted successfully");
     }
 }
