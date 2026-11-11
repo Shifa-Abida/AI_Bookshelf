@@ -10,6 +10,7 @@ import com.Organise.AI_Bookshelf.repository.ToolRepository;
 import com.Organise.AI_Bookshelf.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -61,9 +62,9 @@ public class ToolService {
     }
 
     // Get a tool by ID
-    public Optional<ToolResponseDto> getToolById(Long id) {
+    public ResponseEntity<ToolResponseDto> getToolById(Long id) {
         ToolEntity toolEntity = toolRepository.findById(id).orElseThrow(() -> new ToolNotFoundException("Tool not found with id: " + id));
-        return Optional.of(mapToResponse(toolEntity));
+        return ResponseEntity.ok(mapToResponse(toolEntity));
     }
 
    // Create a new tool
@@ -101,6 +102,19 @@ public class ToolService {
 
         ToolEntity existingTool = toolRepository.findById(id)
                 .orElseThrow(() -> new ToolNotFoundException("Tool not found with id: " + id));
+
+        // Check duplicate tool name
+        if (toolRepository.existsByNameAndIdNot(toolDto.getName(), id)) {
+            throw new ToolAlreadyExistsException(
+                    "Another tool with this name already exists.");
+        }
+
+        // Check duplicate website URL
+        if (toolRepository.existsByWebsiteUrlAndIdNot(
+                toolDto.getWebsiteUrl(), id)) {
+            throw new ToolAlreadyExistsException(
+                    "Another tool with this website URL already exists.");
+        }
 
         existingTool.setName(toolDto.getName());
         existingTool.setDescription(toolDto.getDescription());

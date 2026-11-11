@@ -19,14 +19,6 @@ public class ToolController {
 
     private final ToolService toolService;
 
-    @ExceptionHandler(ToolNotFoundException.class)
-    public ResponseEntity<String> handleToolNotFound(ToolNotFoundException ex) {
-
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(ex.getMessage());
-    }
-
     //crate a new tool
     @PostMapping("/api/tools")
     public ToolResponseDto createTool(@Valid @RequestBody ToolRequestDto toolDto) {
@@ -41,7 +33,7 @@ public class ToolController {
 
     //get a tool by id
     @GetMapping("/api/tools/{id}")
-    public Optional<ToolResponseDto> getToolById(@PathVariable Long id) {
+    public ResponseEntity<ToolResponseDto> getToolById(@PathVariable Long id) {
         return toolService.getToolById(id);
     }
 
