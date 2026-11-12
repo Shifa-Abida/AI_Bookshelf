@@ -9,9 +9,12 @@ import com.Organise.AI_Bookshelf.exception.ToolNotFoundException;
 import com.Organise.AI_Bookshelf.repository.ToolRepository;
 import com.Organise.AI_Bookshelf.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -55,11 +58,20 @@ public class ToolService {
     }
 
     // Get all tools
-    public List<ToolResponseDto> getAllTools() {
-        return toolRepository.findAll().stream()
-                .map(this::mapToResponse)
-                .toList();
+    public Page<ToolResponseDto> getAllTools(Pageable pageable) {
+        Page<ToolEntity> toolEntities = toolRepository.findAll(pageable);
+        return toolEntities.map(this::mapToResponse);
+
     }
+
+
+    public Page<ToolResponseDto> getToolsByCategory( String categoryName, Pageable pageable) {
+
+        Page<ToolEntity> toolPage = toolRepository.findByCategory_Name(categoryName, pageable);
+
+        return toolPage.map(this::mapToResponse);
+    }
+
 
     // Get a tool by ID
     public ResponseEntity<ToolResponseDto> getToolById(Long id) {

@@ -6,10 +6,12 @@ import com.Organise.AI_Bookshelf.exception.ToolNotFoundException;
 import com.Organise.AI_Bookshelf.service.ToolService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,8 +29,28 @@ public class ToolController {
 
     //get all tools
     @GetMapping("/api/tools")
-    public List<ToolResponseDto> getAllTools() {
-        return toolService.getAllTools();
+    public ResponseEntity<?> getAllTools(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String category,
+            Pageable pageable) {
+
+        if (page != null && page < 0) {
+            return ResponseEntity.badRequest()
+                    .body("Page number cannot be negative.");
+        }
+
+        if (size != null && size <= 0) {
+            return ResponseEntity.badRequest()
+                    .body("Page size must be greater than zero.");
+        }
+
+        if (category != null && !category.isBlank()) {
+            return ResponseEntity.ok(
+                    toolService.getToolsByCategory(category, pageable));
+        }
+
+        return ResponseEntity.ok(toolService.getAllTools(pageable));
     }
 
     //get a tool by id
