@@ -287,6 +287,51 @@ GET /api/tools?page=0&size=5&category=Coding
 GET /api/tools?page=0&size=5&sort=name,asc&category=Coding
 ```
 
+### Phase 7: Search Functionality
+
+Implemented keyword-based search across AI tool names, descriptions, and category names.
+
+**1. Repository Search**
+
+- Added a Spring Data JPA derived query using `Containing` and `IgnoreCase`.
+- Searches across the tool name, description, and related category name.
+- Uses `OR` conditions, so a match in any of the three fields is returned.
+
+**2. Service Layer**
+
+- Added `searchTools()` to pass the search keyword to the repository.
+- Maps matching `ToolEntity` records to `ToolResponseDto`.
+- Preserves pagination metadata using `Page.map()`.
+
+**3. Search API**
+
+Added the endpoint:
+
+```http
+GET /api/tools/search?keyword=coding&page=0&size=5
+```
+
+The endpoint supports:
+- Partial keyword matching.
+- Case-insensitive matching.
+- Searching tool names, descriptions, and category names.
+- Pagination and sorting through Spring Data's `Pageable`.
+
+**4. Search Input Validation & Exception Handling**
+
+- Rejects blank search keywords with `400 Bad Request`.
+- Trims leading and trailing whitespace from keywords.
+- Rejects negative page numbers and page sizes less than or equal to zero.
+- Handles missing required query parameters through `MissingServletRequestParameterException` in `GlobalExceptionHandler`, returning `400 Bad Request` instead of an internal server error.
+
+**Example requests**
+
+```http
+GET /api/tools/search?keyword=cursor&page=0&size=5
+GET /api/tools/search?keyword=coding&page=0&size=5&sort=name,asc
+GET /api/tools/search?keyword=research&page=0&size=5
+```
+
 ---
 
 ## 🗄️ Database Design
@@ -352,6 +397,7 @@ http://localhost:8080/api/tools
 |---|---|---|
 | POST | `/api/tools` | Create a tool |
 | GET | `/api/tools` | Retrieve tools with optional pagination, sorting, and category filtering |
+| GET | `/api/tools/search` | Search tools by name, description, or category with pagination and sorting |
 | GET | `/api/tools/{id}` | Retrieve a tool by ID |
 | PUT | `/api/tools/{id}` | Update a tool |
 | DELETE | `/api/tools/{id}` | Delete a tool |
@@ -403,6 +449,25 @@ GET http://localhost:8080/api/tools?page=0&size=5&sort=name,asc&category=Coding
 ```
 
 Invalid pagination values return `400 Bad Request`. A valid query for a category with no matching tools returns an empty page.
+
+### Search API
+
+The search endpoint accepts these query parameters:
+
+| Parameter | Description | Example |
+|---|---|---|
+| `keyword` | Required search text | `keyword=coding` |
+| `page` | Zero-based page index | `page=0` |
+| `size` | Maximum number of records per page | `size=5` |
+| `sort` | Field and sort direction | `sort=name,asc` |
+
+Example:
+
+```http
+GET http://localhost:8080/api/tools/search?keyword=coding&page=0&size=5&sort=name,asc
+```
+
+Search is partial and case-insensitive, and checks tool name, description, and category name. Missing or blank keywords and invalid pagination values return `400 Bad Request`.
 
 ### HTTP Status Codes
 
@@ -484,7 +549,7 @@ http://localhost:8080
 
 ## 🧪 API Testing
 
-CRUD operations, validation rules, duplicate checks, category relationships, pagination, sorting, category filtering, and invalid pagination parameters have been tested using Postman.
+CRUD operations, validation rules, duplicate checks, category relationships, pagination, sorting, category filtering, keyword search, and invalid request parameters have been tested using Postman.
 
 Testing includes:
 
@@ -505,6 +570,11 @@ Testing includes:
 - Returning empty results for categories with no matches.
 - Handling out-of-range page requests.
 - Rejecting negative page numbers and non-positive page sizes.
+- Searching by full and partial keywords.
+- Searching tool names, descriptions, and category names.
+- Verifying case-insensitive search and whitespace trimming.
+- Combining search with pagination and sorting.
+- Handling empty results, blank keywords, and missing keywords.
 
 ---
 
@@ -512,7 +582,7 @@ Testing includes:
 
 The project is actively under development. Planned improvements include:
 
-- [ ] Advanced search beyond category filtering.
+- [ ] Advanced search enhancements beyond basic keyword search.
 - [ ] Improved database query optimization.
 - [ ] Spring Security integration.
 - [ ] JWT-based authentication and authorization.
@@ -537,6 +607,7 @@ The project is actively under development. Planned improvements include:
 | Phase 4 | Validation & Exception Handling | Completed |
 | Phase 5 | Entity Relationships & Database Design | Completed |
 | Phase 6 | Pagination, Sorting & Filtering | Completed |
+| Phase 7 | Search Functionality | Completed |
 | Future Phases | Security, Testing, Cloud & Deployment | Planned |
 
 ---
