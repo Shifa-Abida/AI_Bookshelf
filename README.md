@@ -6,7 +6,7 @@ The project is being developed using **Java and Spring Boot**, following a layer
 
 > 🚧 **Project Status: Under Development**
 >
-> The initial backend implementation, including CRUD operations, validation, exception handling, and database relationships, has been completed. Additional features and improvements are currently in progress.
+> The backend currently includes CRUD APIs, validation, centralized exception handling, tool-category relationships, and paginated, sortable, category-filtered retrieval. The project is continuing to evolve with additional backend features.
 
 ---
 
@@ -256,6 +256,37 @@ The DELETE endpoint returns a confirmation message:
 Tool deleted successfully.
 ```
 
+### Phase 6: Pagination, Sorting & Category Filtering
+
+Improved the GET all-tools API to handle larger collections efficiently and allow clients to narrow and organize results.
+
+**1. Pagination**
+- Used Spring Data's `Pageable` and `Page` abstractions.
+- Added page and size query parameters.
+- Returned page metadata such as `totalElements`, `totalPages`, `number`, and `size`.
+
+**2. Sorting**
+- Supports sorting through Spring's `sort` query parameter.
+- Supports ascending and descending order for fields such as `name` and `id`.
+
+**3. Category Filtering**
+- Added the derived repository query `findByCategory_Name(...)`.
+- Added service logic to retrieve tools for a selected category.
+- Kept the category parameter optional, so the same endpoint can return all tools or filter by category.
+
+**4. Pagination Parameter Validation**
+- Rejects negative page numbers with `400 Bad Request`.
+- Rejects page sizes less than or equal to zero with `400 Bad Request`.
+- Returns a clear validation message for invalid pagination parameters.
+
+**Example requests**
+```http
+GET /api/tools?page=0&size=5
+GET /api/tools?page=0&size=5&sort=name,asc
+GET /api/tools?page=0&size=5&category=Coding
+GET /api/tools?page=0&size=5&sort=name,asc&category=Coding
+```
+
 ---
 
 ## 🗄️ Database Design
@@ -320,7 +351,7 @@ http://localhost:8080/api/tools
 | Method | Endpoint | Description |
 |---|---|---|
 | POST | `/api/tools` | Create a tool |
-| GET | `/api/tools` | Retrieve all tools |
+| GET | `/api/tools` | Retrieve tools with optional pagination, sorting, and category filtering |
 | GET | `/api/tools/{id}` | Retrieve a tool by ID |
 | PUT | `/api/tools/{id}` | Update a tool |
 | DELETE | `/api/tools/{id}` | Delete a tool |
@@ -353,6 +384,25 @@ Example Response:
   "pricing": "Freemium"
 }
 ```
+
+### Pagination, Sorting & Filtering
+
+The GET all-tools endpoint accepts these optional query parameters:
+
+| Parameter | Description | Example |
+|---|---|---|
+| `page` | Zero-based page index | `page=0` |
+| `size` | Maximum number of records per page | `size=5` |
+| `sort` | Field and direction | `sort=name,asc` |
+| `category` | Category name to filter by | `category=Coding` |
+
+Example:
+
+```http
+GET http://localhost:8080/api/tools?page=0&size=5&sort=name,asc&category=Coding
+```
+
+Invalid pagination values return `400 Bad Request`. A valid query for a category with no matching tools returns an empty page.
 
 ### HTTP Status Codes
 
@@ -434,7 +484,7 @@ http://localhost:8080
 
 ## 🧪 API Testing
 
-All implemented CRUD operations, validation rules, duplicate checks, and category relationships have been tested using Postman.
+CRUD operations, validation rules, duplicate checks, category relationships, pagination, sorting, category filtering, and invalid pagination parameters have been tested using Postman.
 
 Testing includes:
 
@@ -448,6 +498,13 @@ Testing includes:
 - Preventing duplicate tool names.
 - Preventing duplicate website URLs.
 - Handling invalid requests and missing records.
+- Retrieving results page by page.
+- Sorting results in ascending and descending order.
+- Filtering tools by category.
+- Combining pagination, sorting, and category filtering.
+- Returning empty results for categories with no matches.
+- Handling out-of-range page requests.
+- Rejecting negative page numbers and non-positive page sizes.
 
 ---
 
@@ -455,8 +512,7 @@ Testing includes:
 
 The project is actively under development. Planned improvements include:
 
-- [ ] Pagination and sorting.
-- [ ] Advanced search and filtering.
+- [ ] Advanced search beyond category filtering.
 - [ ] Improved database query optimization.
 - [ ] Spring Security integration.
 - [ ] JWT-based authentication and authorization.
@@ -480,7 +536,7 @@ The project is actively under development. Planned improvements include:
 | Phase 3 | CRUD REST APIs | Completed |
 | Phase 4 | Validation & Exception Handling | Completed |
 | Phase 5 | Entity Relationships & Database Design | Completed |
-| Phase 6 | Pagination, Sorting & Filtering | Planned |
+| Phase 6 | Pagination, Sorting & Filtering | Completed |
 | Future Phases | Security, Testing, Cloud & Deployment | Planned |
 
 ---
