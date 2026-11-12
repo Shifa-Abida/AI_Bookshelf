@@ -21,6 +21,34 @@ public class ToolController {
 
     private final ToolService toolService;
 
+    // Search tools by keyword
+    @GetMapping("/api/tools/search")
+    public ResponseEntity<?> searchTools(
+            @RequestParam String keyword,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            Pageable pageable) {
+
+        if (keyword.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body("Search keyword cannot be blank.");
+        }
+
+        if (page != null && page < 0) {
+            return ResponseEntity.badRequest()
+                    .body("Page number cannot be negative.");
+        }
+
+        if (size != null && size <= 0) {
+            return ResponseEntity.badRequest()
+                    .body("Page size must be greater than zero.");
+        }
+
+        return ResponseEntity.ok(
+                toolService.searchTools(keyword.trim(), pageable)
+        );
+    }
+
     //crate a new tool
     @PostMapping("/api/tools")
     public ToolResponseDto createTool(@Valid @RequestBody ToolRequestDto toolDto) {
@@ -47,7 +75,7 @@ public class ToolController {
 
         if (category != null && !category.isBlank()) {
             return ResponseEntity.ok(
-                    toolService.getToolsByCategory(category, pageable));
+                    toolService.searchTools(category, pageable));
         }
 
         return ResponseEntity.ok(toolService.getAllTools(pageable));

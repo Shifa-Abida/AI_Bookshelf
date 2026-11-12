@@ -65,9 +65,18 @@ public class ToolService {
     }
 
 
-    public Page<ToolResponseDto> getToolsByCategory( String categoryName, Pageable pageable) {
+    // Search tools by name, description, or category
+    public Page<ToolResponseDto> searchTools(
+            String keyword, Pageable pageable) {
 
-        Page<ToolEntity> toolPage = toolRepository.findByCategory_Name(categoryName, pageable);
+        Page<ToolEntity> toolPage =
+                toolRepository
+                        .findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseOrCategory_NameContainingIgnoreCase(
+                                keyword,
+                                keyword,
+                                keyword,
+                                pageable
+                        );
 
         return toolPage.map(this::mapToResponse);
     }

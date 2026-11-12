@@ -22,4 +22,11 @@ public interface ToolRepository extends JpaRepository<ToolEntity, Long> {
             Pageable pageable
     );
 
+    Page<ToolEntity> findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseOrCategory_NameContainingIgnoreCase(
+            String name,
+            String description,
+            String category,
+            Pageable pageable
+    );
+
 }

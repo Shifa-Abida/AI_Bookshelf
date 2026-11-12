@@ -4,6 +4,7 @@ import com.Organise.AI_Bookshelf.dto.ErrorResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -12,6 +13,24 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponseDto> handleMissingRequestParameter(
+            MissingServletRequestParameterException ex) {
+
+        ErrorResponseDto error = new ErrorResponseDto();
+
+        error.setStatus(HttpStatus.BAD_REQUEST.value());
+        error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        error.setMessage(
+                "Required request parameter '" + ex.getParameterName() + "' is missing."
+        );
+        error.setTimestamp(LocalDateTime.now());
+
+        return ResponseEntity
+                .badRequest()
+                .body(error);
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleGlobalException(
