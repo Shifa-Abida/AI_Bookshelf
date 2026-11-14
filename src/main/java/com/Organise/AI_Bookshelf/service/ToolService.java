@@ -2,10 +2,12 @@ package com.Organise.AI_Bookshelf.service;
 
 import com.Organise.AI_Bookshelf.dto.ToolRequestDto;
 import com.Organise.AI_Bookshelf.dto.ToolResponseDto;
+import com.Organise.AI_Bookshelf.dto.ToolSummaryDto;
 import com.Organise.AI_Bookshelf.entity.CategoryEntity;
 import com.Organise.AI_Bookshelf.entity.ToolEntity;
 import com.Organise.AI_Bookshelf.exception.ToolAlreadyExistsException;
 import com.Organise.AI_Bookshelf.exception.ToolNotFoundException;
+import com.Organise.AI_Bookshelf.projection.ToolSummaryProjection;
 import com.Organise.AI_Bookshelf.repository.ToolRepository;
 import com.Organise.AI_Bookshelf.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +64,28 @@ public class ToolService {
         Page<ToolEntity> toolEntities = toolRepository.findAll(pageable);
         return toolEntities.map(this::mapToResponse);
 
+    }
+
+    // Get lightweight tool summaries using interface projection
+    public List<ToolSummaryProjection> getAllToolSummaries() {
+
+        return toolRepository.findAllToolSummaries();
+
+    }
+
+    // Get tool summaries using DTO projection
+    public List<ToolSummaryDto> getAllToolSummariesUsingDto() {
+
+        return toolRepository.findAllToolSummariesUsingDto();
+
+    }
+
+    // Search tools by name using dynamic projection
+    public <T> List<T> searchToolSummaries(String keyword, Class<T> projectionType) {
+        return toolRepository.findByNameContainingIgnoreCase(
+                keyword,
+                projectionType
+        );
     }
 
 

@@ -2,7 +2,9 @@ package com.Organise.AI_Bookshelf.controller;
 
 import com.Organise.AI_Bookshelf.dto.ToolRequestDto;
 import com.Organise.AI_Bookshelf.dto.ToolResponseDto;
+import com.Organise.AI_Bookshelf.dto.ToolSummaryDto;
 import com.Organise.AI_Bookshelf.exception.ToolNotFoundException;
+import com.Organise.AI_Bookshelf.projection.ToolSummaryProjection;
 import com.Organise.AI_Bookshelf.service.ToolService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,10 +51,42 @@ public class ToolController {
         );
     }
 
+
+
     //crate a new tool
     @PostMapping("/api/tools")
     public ToolResponseDto createTool(@Valid @RequestBody ToolRequestDto toolDto) {
         return toolService.createTool(toolDto);
+    }
+
+    // Get lightweight tool summaries using projection
+    @GetMapping("/api/tools/summaries")
+    public ResponseEntity<List<ToolSummaryProjection>> getAllToolSummaries() {
+
+        return ResponseEntity.ok(
+                toolService.getAllToolSummaries()
+        );
+    }
+
+    // Get tool summaries using DTO projection
+    @GetMapping("/api/tools/summaries/dto")
+    public ResponseEntity<List<ToolSummaryDto>> getAllToolSummariesUsingDto() {
+
+        return ResponseEntity.ok(
+                toolService.getAllToolSummariesUsingDto()
+        );
+    }
+
+    @GetMapping("/api/tools/dynamic-summary")
+    public ResponseEntity<List<ToolSummaryDto>> searchDynamicSummary(
+            @RequestParam String keyword
+    ) {
+        return ResponseEntity.ok(
+                toolService.searchToolSummaries(
+                        keyword,
+                        ToolSummaryDto.class
+                )
+        );
     }
 
     //get all tools
