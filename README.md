@@ -6,7 +6,7 @@ The project is being developed using **Java and Spring Boot**, following a layer
 
 > 🚧 **Project Status: Under Development**
 >
-> The backend currently includes CRUD APIs, validation, centralized exception handling, tool-category relationships, and paginated, sortable, category-filtered retrieval. The project is continuing to evolve with additional backend features.
+> The backend currently includes CRUD APIs, validation, centralized exception handling, tool-category relationships, pagination, sorting, category filtering, keyword search, and Spring Data JPA projections. Advanced Hibernate and database optimization topics are being implemented incrementally.
 
 ---
 
@@ -65,6 +65,9 @@ src/main/java/com/Organise/AI_Bookshelf/
 │   ├── GlobalExceptionHandler.java
 │   ├── ToolNotFoundException.java
 │   └── ToolAlreadyExistsException.java
+│
+├── projection/
+│   └── ToolSummaryProjection.java
 │
 ├── repository/
 │   ├── ToolRepository.java
@@ -334,6 +337,53 @@ GET /api/tools/search?keyword=research&page=0&size=5
 
 ---
 
+### Phase 8.1: Spring Data JPA Projections
+
+Implemented and tested three projection approaches to retrieve selected fields without loading complete tool entities for these read operations.
+
+**1. Interface-Based Projection**
+
+- Created `ToolSummaryProjection` with getters for tool name, website URL, and category name.
+- Added a JPQL query with aliases matching the projection getter properties.
+- Implemented the repository, service, and controller layers.
+
+Endpoint:
+
+```http
+GET /api/tools/summaries
+```
+
+**2. Class-Based / DTO Projection**
+
+- Created `ToolSummaryDto` as a Java record.
+- Used a JPQL constructor expression (`SELECT NEW`) to instantiate the DTO directly from selected query values.
+- Implemented the repository, service, and controller layers.
+
+Endpoint:
+
+```http
+GET /api/tools/summaries/dto
+```
+
+**3. Dynamic Projection**
+
+- Added a generic repository method accepting `Class<T>`.
+- Added a service method that accepts the requested projection type.
+- Demonstrated selecting a projection type at runtime.
+
+Endpoint:
+
+```http
+GET /api/tools/dynamic-summary?keyword=ChatGPT
+```
+
+**Testing**
+
+- Successfully tested all three projection endpoints using Postman.
+- Verified that the responses contain the requested summary fields: tool name, website URL, and category name.
+
+---
+
 ## 🗄️ Database Design
 
 The application currently uses two main entities.
@@ -398,6 +448,9 @@ http://localhost:8080/api/tools
 | POST | `/api/tools` | Create a tool |
 | GET | `/api/tools` | Retrieve tools with optional pagination, sorting, and category filtering |
 | GET | `/api/tools/search` | Search tools by name, description, or category with pagination and sorting |
+| GET | `/api/tools/summaries` | Retrieve tool summaries using interface-based projection |
+| GET | `/api/tools/summaries/dto` | Retrieve tool summaries using DTO projection |
+| GET | `/api/tools/dynamic-summary` | Search tool summaries using dynamic projection |
 | GET | `/api/tools/{id}` | Retrieve a tool by ID |
 | PUT | `/api/tools/{id}` | Update a tool |
 | DELETE | `/api/tools/{id}` | Delete a tool |
@@ -574,6 +627,9 @@ Testing includes:
 - Searching tool names, descriptions, and category names.
 - Verifying case-insensitive search and whitespace trimming.
 - Combining search with pagination and sorting.
+- Retrieving selected tool fields using interface-based projection.
+- Retrieving selected tool fields using DTO projection and JPQL constructor expressions.
+- Searching tool summaries using dynamic projection.
 - Handling empty results, blank keywords, and missing keywords.
 
 ---
@@ -608,7 +664,9 @@ The project is actively under development. Planned improvements include:
 | Phase 5 | Entity Relationships & Database Design | Completed |
 | Phase 6 | Pagination, Sorting & Filtering | Completed |
 | Phase 7 | Search Functionality | Completed |
-| Future Phases | Security, Testing, Cloud & Deployment | Planned |
+| Phase 8.1 | Spring Data JPA Projections | Completed |
+| Phase 8.2 onward | Hibernate Entity Lifecycle, Persistence Context & Database Optimization | In Progress / Planned |
+| Future Enhancements | Security, Testing, Cloud & Deployment | Planned |
 
 ---
 
